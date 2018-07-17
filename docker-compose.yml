@@ -1,0 +1,17 @@
+version: '3.3'
+services:
+  postgres:
+    build: .
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD
+    volumes: 
+      - ./pgdata:/var/lib/postgresql/data/uow
+  pgAdmin:
+    image: "dpage/pgadmin4"
+    ports:
+      - "8001:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL
+      - PGADMIN_DEFAULT_PASSWORD

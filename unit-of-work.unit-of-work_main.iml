@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_10" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$/../graphql-webflux-dataloader/src/main">
+      <sourceFolder url="file://$MODULE_DIR$/../graphql-webflux-dataloader/src/main/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../graphql-webflux-dataloader/src/main/kotlin" isTestSource="false" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
+    <orderEntry type="library" name="io.projectreactor:reactor-core:3.1.8.RELEASE" level="project" />
+    <orderEntry type="library" name="org.springframework.data:spring-data-commons:2.0.8.RELEASE" level="project" />
+    <orderEntry type="library" name="org.jooq:jooq:3.11.2" level="project" />
+    <orderEntry type="library" name="org.jooq:jooq-meta:3.11.2" level="project" />
+    <orderEntry type="library" name="org.jooq:jooq-codegen:3.11.2" level="project" />
+    <orderEntry type="library" name="org.postgresql:postgresql:42.2.2" level="project" />
+  </component>
+</module>
