@@ -3,14 +3,17 @@ buildscript {
         kotlinVersion = '1.2.51'
         springBootVersion = '2.0.3.RELEASE'
         jooqVersion = '3.11.2'
+        dokkaVersion = '0.9.17'
     }
     repositories {
         mavenCentral()
+        jcenter()
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
         classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
+        classpath("org.jetbrains.dokka:dokka-gradle-plugin:${dokkaVersion}")
     }
 }
 
@@ -24,6 +27,7 @@ apply plugin: 'kotlin-spring'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'nu.studer.jooq'
+apply plugin: 'org.jetbrains.dokka'
 
 group = 'com.opidis.ca.unit-of-work'
 version = '0.0.1-SNAPSHOT'
@@ -67,4 +71,9 @@ dependencies {
 
 test {
     useJUnitPlatform {}
+}
+
+dokka {
+    outputFormat = 'html'
+    outputDirectory = "$buildDir/javadoc"
 }
