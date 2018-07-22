@@ -92,7 +92,7 @@
 
                  If left empty, jOOQ will generate all available schemata. See the
                  manual's next section to learn how to generate several schemata -->
-            <inputSchema></inputSchema>
+            <inputSchema>public</inputSchema>
         </database>
 
         <generate>

@@ -3,6 +3,7 @@ package com.opidis.ca.data
 import org.jooq.DSLContext
 import org.jooq.Query
 import org.reactivestreams.Publisher
+import java.util.concurrent.CompletableFuture
 //import reactor.core.publisher.Mono
 import kotlin.properties.Delegates
 
@@ -82,7 +83,7 @@ fun main() {
 
 fun <T>makeObservable(initialValue: T, entity: Entity, entityTrackingUnitOfWork: EntityTrackingUnitOfWork? = null) =
     Delegates.observable(initialValue = initialValue) {
-        prop, old, new ->
+        _, _, _ ->
         entityTrackingUnitOfWork?.trackChange(tracked = entity)
     }
 
@@ -126,6 +127,9 @@ class EntityTrackingUnitOfWork(private val dslContext: DSLContext, private val q
     }
 
     override fun trackChange(tracked: Entity): Publisher<Int> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        // TODO: Create a wrapper that contains Entity and returns a Publisher with the count of the
+        // affected rows as had with Query tracking UoW
+        changedEntities.add(tracked)
+        return Publisher { 0 }
     }
 }
