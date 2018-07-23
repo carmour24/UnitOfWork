@@ -68,6 +68,10 @@ internal class ObservableUser2Test {
             ), onChange = {
                 changed = true
             })
+
+            // This is temporary, it's necessary to test that after initial set on init subsequently setting a property
+            // will fire the onChange handler
+            changed = false
         }
 
         @AfterEach
