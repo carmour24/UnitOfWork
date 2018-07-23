@@ -13,9 +13,15 @@ null) =
 
 typealias EntityTracker<T> = (KProperty<*>, T, T) -> Unit
 
+fun <T, TEntity: Entity> createEntityTracker(thisEntity: TEntity, onChange: ((TEntity) -> Unit)?): EntityTracker<T> {
+    return {_, _, _ ->
+        onChange?.invoke(thisEntity)
+    }
+}
+
 internal fun <T> makeObservable2(
         initialValue: T,
-        onEntityChange: EntityTracker<T>? = null
+        onEntityChange: EntityTracker<T>?
 ): ReadWriteProperty<Any?, T> {
     val noop: EntityTracker<T> = { _, _, _ -> }
 
