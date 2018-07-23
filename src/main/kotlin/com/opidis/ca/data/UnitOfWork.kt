@@ -1,11 +1,8 @@
 package com.opidis.ca.data
 
-import org.jooq.DSLContext
-import org.jooq.Query
-import org.reactivestreams.Publisher
-import java.util.concurrent.CompletableFuture
 //import reactor.core.publisher.Mono
-import kotlin.properties.Delegates
+import org.jooq.DSLContext
+import org.reactivestreams.Publisher
 
 /**
  * Unit of work pattern
@@ -43,7 +40,7 @@ interface UnitOfWork<in Tracked> {
 
 
 class Configuration() {
-    fun queryFor(changeType: ChangeType, entity: Entity, dslContext: DSLContext): Query {
+    fun queryFor(changeType: ChangeType, entity: Entity, dslContext: DSLContext): org.jooq.Query {
 
 //        return dslContext.batchUpdate(mutableListOf<UpdateableRecord<Entity>>(null)).
 
@@ -63,7 +60,7 @@ enum class ChangeType {
 interface Entity
 
 
-open class User(open val name: String, open val address: Array<String>): Entity
+open class User(open val name: String, open val address: Array<String>) : Entity
 
 fun main() {
     val entityTrackingUnitOfWork: EntityTrackingUnitOfWork
@@ -74,62 +71,10 @@ fun main() {
             "Glasgow",
             "G1 3RS",
             "UK"
-        )
+    )
     )
 
 
     print("Name: ${entity.name}, Address: ${entity.address}")
 }
 
-fun <T>makeObservable(initialValue: T, entity: Entity, entityTrackingUnitOfWork: EntityTrackingUnitOfWork? = null) =
-    Delegates.observable(initialValue = initialValue) {
-        _, _, _ ->
-        entityTrackingUnitOfWork?.trackChange(tracked = entity)
-    }
-
-class ObservableUser(name: String, address: Array<String>, entityTrackingUnitOfWork: EntityTrackingUnitOfWork? = null) : Entity {
-    val name: String by makeObservable("", this, entityTrackingUnitOfWork)
-    val address: Array<String> by makeObservable(emptyArray(), this, entityTrackingUnitOfWork)
-}
-
-class EntityTrackingUnitOfWork(private val dslContext: DSLContext, private val queryConfiguration: com.opidis.ca.data.Configuration): UnitOfWork<Entity> {
-    private val newEntities = mutableListOf<Entity>()
-    private val changedEntities = mutableListOf<Entity>()
-    private val deletedEntities = mutableListOf<Entity>()
-
-    override fun trackNew(tracked: Entity): Publisher<Int> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun trackDelete(tracked: Entity): Publisher<Int> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    /**
-     * Commit all tracked entity changes within a single commit.
-     */
-    override fun complete() {
-        dslContext.connection {
-            dslContext.transaction { ->
-
-                // Group all entities by their type so we can batch their updates by type
-                newEntities.groupBy { it.javaClass }
-                        // For each class type create a batch of
-                        .forEach {
-                            dslContext.batch(
-                                    it.value.map {
-                                        queryConfiguration.queryFor(changeType = ChangeType.Insert, entity = it, dslContext = dslContext)
-                                    }
-                            )
-                        }
-            }
-        }
-    }
-
-    override fun trackChange(tracked: Entity): Publisher<Int> {
-        // TODO: Create a wrapper that contains Entity and returns a Publisher with the count of the
-        // affected rows as had with Query tracking UoW
-        changedEntities.add(tracked)
-        return Publisher { 0 }
-    }
-}
