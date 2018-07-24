@@ -28,7 +28,7 @@ internal fun <T> makeObservable2(
     return Delegates.observable(initialValue = initialValue, onChange = onEntityChange ?: noop)
 }
 
-fun <T, TEntity>makeObservable3(entity: TEntity, onChange: ((TEntity) -> Unit)?): EntityTracker<T> {
+fun <T, TEntity>makeObservable2(entity: TEntity, onChange: ((TEntity) -> Unit)?): EntityTracker<T> {
     return {
         _, _, _ ->
         onChange?.invoke(entity)

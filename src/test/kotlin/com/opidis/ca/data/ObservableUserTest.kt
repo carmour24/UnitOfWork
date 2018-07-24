@@ -4,34 +4,122 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Nested
 
 internal class ObservableUserTest {
-    private var observableUser: ObservableUser? = null
+    @Nested
+    class Simple {
+        private var observableUser: ObservableUser? = null
 
-    @BeforeEach
-    fun setUp() {
-        observableUser = ObservableUser(name = "Chris", address = arrayOf(
-                "Idox Software Ltd",
-                "The Grosvenor Building",
-                "72 Gordon Street",
-                "Glasgow",
-                "G1 3RS",
-                "UK"
-        ))
+        @BeforeEach
+        fun setUp() {
+            observableUser = ObservableUser(name = "Chris", address = arrayOf(
+                    "Idox Software Ltd",
+                    "The Grosvenor Building",
+                    "72 Gordon Street",
+                    "Glasgow",
+                    "G1 3RS",
+                    "UK"
+            ), onChange = null)
+        }
+
+        @AfterEach
+        fun tearDown() {
+        }
+
+        @Test
+        fun getName() {
+            assert(observableUser?.name == "Chris")
+        }
+
+        @Test
+        fun setName() {
+            observableUser?.name = "Yoni"
+            assert(observableUser?.name == "Yoni")
+        }
+
+        @Test
+        fun getAddress() {
+            assert(observableUser?.address?.size == 6)
+        }
+
+        @Test
+        fun setAddress() {
+            observableUser?.address = arrayOf("Opidis, The Grosvenor Building, 72 Gordon Street, Glasgow, G1 3RS, UK")
+            assert(observableUser?.address?.size == 1)
+        }
     }
 
-    @AfterEach
-    fun tearDown() {
-    }
+    @Nested
+    class OnChangeListener {
+        private var observableUser: ObservableUser? = null
+        private var changed = false
 
-    @Test
-    fun getName() {
-        assert(observableUser?.name == "Chris")
-    }
+        @BeforeEach
+        fun setUp() {
+            observableUser = ObservableUser(name = "Chris", address = arrayOf(
+                    "Idox Software Ltd",
+                    "The Grosvenor Building",
+                    "72 Gordon Street",
+                    "Glasgow",
+                    "G1 3RS",
+                    "UK"
+            ), onChange = {
+                changed = true
+            })
+        }
 
-    @Test
-    fun getAddress() {
-        assert(observableUser?.address?.size == 6)
+        @AfterEach
+        fun tearDown() {
+            changed = false
+        }
+
+        @Test
+        fun getName() {
+            assert(!changed) {
+                "Name has changed"
+            }
+        }
+
+        @Test
+        fun setName() {
+            observableUser?.name = "Yoni"
+            assert(changed) {
+                "Name should have changed!"
+            }
+        }
+
+        @Test
+        fun getAddress() {
+            assert(observableUser?.address?.size == 6)
+        }
+
+        @Test
+        fun setAddress() {
+            observableUser?.address = arrayOf("Opidis, The Grosvenor Building, 72 Gordon Street, Glasgow, G1 3RS, UK")
+            assert(observableUser?.address?.size == 1)
+        }
+
+        @Test
+        fun onChangeHandlerIsPassedCorrectEntity() {
+            var observedUser: ObservableUser? = null
+
+            observedUser = ObservableUser(name = "Chris", address = arrayOf(
+                    "Idox Software Ltd",
+                    "The Grosvenor Building",
+                    "72 Gordon Street",
+                    "Glasgow",
+                    "G1 3RS",
+                    "UK"
+            ), onChange = {
+                assert(observedUser == it) {
+                    "Incorrect entity passed to onChange handler"
+                }
+            })
+
+            observedUser.name = "Gordon"
+        }
     }
 }
+
+

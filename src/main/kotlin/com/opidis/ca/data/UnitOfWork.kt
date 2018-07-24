@@ -57,14 +57,10 @@ enum class ChangeType {
     Select
 }
 
-interface Entity
-
-
-open class User(open val name: String, open val address: Array<String>) : Entity
 
 fun main() {
     val entityTrackingUnitOfWork: EntityTrackingUnitOfWork
-    val entity = ObservableUser(name = "Chris", address = arrayOf(
+    val entity = UnitOfWorkAwareUser(name = "Chris", address = arrayOf(
             "Idox Software Ltd",
             "The Grosvenor Building",
             "72 Gordon Street",
