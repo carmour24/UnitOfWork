@@ -7,14 +7,14 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Nested
 
-internal class ObservableUser2Test {
+internal class ObservableUser3Test {
     @Nested
     class Simple {
-        private var observableUser: ObservableUser2? = null
+        private var observableUser: ObservableUser3? = null
 
         @BeforeEach
         fun setUp() {
-            observableUser = ObservableUser2(name = "Chris", address = arrayOf(
+            observableUser = ObservableUser3(name = "Chris", address = arrayOf(
                     "Idox Software Ltd",
                     "The Grosvenor Building",
                     "72 Gordon Street",
@@ -53,12 +53,12 @@ internal class ObservableUser2Test {
 
     @Nested
     class OnChangeListener {
-        private var observableUser: ObservableUser2? = null
+        private var observableUser: ObservableUser3? = null
         private var changed = false
 
         @BeforeEach
         fun setUp() {
-            observableUser = ObservableUser2(name = "Chris", address = arrayOf(
+            observableUser = ObservableUser3(name = "Chris", address = arrayOf(
                     "Idox Software Ltd",
                     "The Grosvenor Building",
                     "72 Gordon Street",
@@ -99,6 +99,24 @@ internal class ObservableUser2Test {
         fun setAddress() {
             observableUser?.address = arrayOf("Opidis, The Grosvenor Building, 72 Gordon Street, Glasgow, G1 3RS, UK")
             assert(observableUser?.address?.size == 1)
+        }
+
+        @Test
+        fun onChangeHandlerIsPassedCorrectEntity() {
+            var observedUser: ObservableUser3? = null
+
+            observedUser = ObservableUser3(name = "Chris", address = arrayOf(
+                    "Idox Software Ltd",
+                    "The Grosvenor Building",
+                    "72 Gordon Street",
+                    "Glasgow",
+                    "G1 3RS",
+                    "UK"
+            ), onChange = {
+                assert(observedUser == it)
+            })
+
+            observedUser.name = "Gordon"
         }
     }
 }
