@@ -4,7 +4,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Nested
 
 internal class ObservableUser2Test {
@@ -99,6 +98,26 @@ internal class ObservableUser2Test {
         fun setAddress() {
             observableUser?.address = arrayOf("Opidis, The Grosvenor Building, 72 Gordon Street, Glasgow, G1 3RS, UK")
             assert(observableUser?.address?.size == 1)
+        }
+
+        @Test
+        fun onChangeHandlerIsPassedCorrectEntity() {
+            var observedUser: ObservableUser2? = null
+
+            observedUser = ObservableUser2(name = "Chris", address = arrayOf(
+                    "Idox Software Ltd",
+                    "The Grosvenor Building",
+                    "72 Gordon Street",
+                    "Glasgow",
+                    "G1 3RS",
+                    "UK"
+            ), onChange = {
+                assert(observedUser == it) {
+                    "Incorrect entity passed to onChange handler"
+                }
+            })
+
+            observedUser.name = "Gordon"
         }
     }
 }

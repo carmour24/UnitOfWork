@@ -4,6 +4,7 @@ import kotlin.properties.Delegates
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
+typealias EntityTracker<T> = (KProperty<*>, T, T) -> Unit
 
 internal fun <T> makeObservable(initialValue: T, entity: Entity, entityTrackingUnitOfWork: EntityTrackingUnitOfWork? =
 null) =
@@ -11,7 +12,6 @@ null) =
             entityTrackingUnitOfWork?.trackChange(tracked = entity)
         }
 
-typealias EntityTracker<T> = (KProperty<*>, T, T) -> Unit
 
 fun <T, TEntity: Entity> createEntityTracker(thisEntity: TEntity, onChange: ((TEntity) -> Unit)?): EntityTracker<T> {
     return {_, _, _ ->
