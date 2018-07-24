@@ -1,23 +1,37 @@
 package com.opidis.ca.data
 
 import org.jooq.DSLContext
-import org.reactivestreams.Publisher
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionStage
 
 class EntityTrackingUnitOfWork(
         private val dslContext: DSLContext,
-        private val queryConfiguration: Configuration
+        private val queryConfiguration: EntityQueryMappingConfiguration
 ) : UnitOfWork<Entity> {
 
-    private val newEntities = mutableListOf<Entity>()
-    private val changedEntities = mutableListOf<Entity>()
-    private val deletedEntities = mutableListOf<Entity>()
+    private val newEntities = mutableListOf<EntityChangeWrapper>()
+    private val changedEntities = mutableListOf<EntityChangeWrapper>()
+    private val deletedEntities = mutableListOf<EntityChangeWrapper>()
 
-    override fun trackNew(tracked: Entity): Publisher<Int> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun trackNew(tracked: Entity): CompletionStage<Int> {
+        val entityChangeWrapper = EntityChangeWrapper(tracked)
+        newEntities.add(entityChangeWrapper)
+
+        entityChangeWrapper.completionStage.whenComplete { _, u -> newEntities.remove(entityChangeWrapper) }
+
+        return entityChangeWrapper.completionStage
     }
 
-    override fun trackDelete(tracked: Entity): Publisher<Int> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun trackDelete(tracked: Entity): CompletionStage<Int> {
+        val entityChangePublisher = EntityChangeWrapper(tracked)
+        deletedEntities.add(entityChangePublisher)
+        return entityChangePublisher.completionStage
+    }
+
+    override fun trackChange(tracked: Entity): CompletionStage<Int> {
+        val entityChangePublisher = EntityChangeWrapper(tracked)
+        changedEntities.add(entityChangePublisher)
+        return entityChangePublisher.completionStage
     }
 
     /**
@@ -41,10 +55,12 @@ class EntityTrackingUnitOfWork(
         }
     }
 
-    override fun trackChange(tracked: Entity): Publisher<Int> {
-        // TODO: Create a wrapper that contains Entity and returns a Publisher with the count of the
-        // affected rows as had with Query tracking UoW
-        changedEntities.add(tracked)
-        return Publisher { 0 }
+    class EntityChangeWrapper(val changedEntity: Entity) {
+        private val completableFuture = CompletableFuture<Int>()
+        val completionStage: CompletionStage<Int> = completableFuture.minimalCompletionStage()
+
+        fun complete(affectedCount: Int) {
+            completableFuture.complete(affectedCount)
+        }
     }
 }

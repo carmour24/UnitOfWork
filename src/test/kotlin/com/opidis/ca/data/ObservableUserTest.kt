@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Nested
 
 internal class ObservableUserTest {
     @Nested
-    class Simple {
+    class WithNoTracking {
         private var observableUser: ObservableUser? = null
 
         @BeforeEach
@@ -51,7 +51,7 @@ internal class ObservableUserTest {
     }
 
     @Nested
-    class OnChangeListener {
+    class WithOnChangeListener {
         private var observableUser: ObservableUser? = null
         private var changed = false
 

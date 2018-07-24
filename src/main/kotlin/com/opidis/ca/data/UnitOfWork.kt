@@ -1,8 +1,7 @@
 package com.opidis.ca.data
 
-//import reactor.core.publisher.Mono
-import org.jooq.DSLContext
-import org.reactivestreams.Publisher
+import java.util.concurrent.CompletionStage
+import java.util.concurrent.Flow
 
 /**
  * Unit of work pattern
@@ -17,20 +16,20 @@ interface UnitOfWork<in Tracked> {
      * Adds an entity to the internal tracking of changes to be later persisted to the database by calling [complete].
      * @return Returns a mono with the count of rows affected once the tracked entity's changes have been persisted.
      */
-    fun trackChange(tracked: Tracked): Publisher<Int>
+    fun trackChange(tracked: Tracked): CompletionStage<Int>
 
     /**
      * Adds an entity to the internal tracking of changes to be later persisted to the database by calling [complete].
      * @return Returns a mono with the count of rows affected once the tracked entity's changes have been persisted.
      */
-    fun trackNew(tracked: Tracked): Publisher<Int>
+    fun trackNew(tracked: Tracked): CompletionStage<Int>
 
 
     /**
      * Adds an entity to the internal tracking of changes to be later persisted to the database by calling [complete].
      * @return Returns a mono with the count of rows affected once the tracked entity's changes have been persisted.
      */
-    fun trackDelete(tracked: Tracked): Publisher<Int>
+    fun trackDelete(tracked: Tracked): CompletionStage<Int>
 
     /**
      * Persist all changes recorded with [trackChange] to the database within a single transaction.
@@ -38,39 +37,4 @@ interface UnitOfWork<in Tracked> {
     fun complete()
 }
 
-
-class Configuration() {
-    fun queryFor(changeType: ChangeType, entity: Entity, dslContext: DSLContext): org.jooq.Query {
-
-//        return dslContext.batchUpdate(mutableListOf<UpdateableRecord<Entity>>(null)).
-
-//        return dslContext.update()
-
-        return dslContext.query("")
-    }
-}
-
-enum class ChangeType {
-    Insert,
-    Update,
-    Delete,
-    Select
-}
-
-
-fun main() {
-    val entityTrackingUnitOfWork: EntityTrackingUnitOfWork
-    val entity = UnitOfWorkAwareUser(name = "Chris", address = arrayOf(
-            "Idox Software Ltd",
-            "The Grosvenor Building",
-            "72 Gordon Street",
-            "Glasgow",
-            "G1 3RS",
-            "UK"
-    )
-    )
-
-
-    print("Name: ${entity.name}, Address: ${entity.address}")
-}
 
