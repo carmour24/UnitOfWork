@@ -1,61 +1,72 @@
 package com.opidis.ca.data
 
-import org.jooq.DSLContext
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 
-class EntityTrackingUnitOfWork(
-        private val dslContext: DSLContext,
-        private val queryConfiguration: EntityQueryMappingConfiguration
-) : UnitOfWork<Entity> {
+//val jooqEntityTrackingUnitOfWork = EntityTrackingUnitOfWork(EntityQueryMappingConfiguration(DSL.using("")), JooqQueryCoordinator
+//(DSL.using("")))
+
+
+class EntityTrackingUnitOfWork<TQuery>(
+        private val queryConfiguration: QueryMappingConfiguration<TQuery>,
+        queryCoordinator: QueryCoordinator<TQuery>
+) : UnitOfWork<Entity>, QueryCoordinator<TQuery> by queryCoordinator {
 
     private val newEntities = mutableListOf<EntityChangeWrapper>()
     private val changedEntities = mutableListOf<EntityChangeWrapper>()
     private val deletedEntities = mutableListOf<EntityChangeWrapper>()
 
-    override fun trackNew(tracked: Entity): CompletionStage<Int> {
+    private fun trackEntity(tracked: Entity, trackingList: MutableList<EntityChangeWrapper>): CompletionStage<Int> {
         val entityChangeWrapper = EntityChangeWrapper(tracked)
-        newEntities.add(entityChangeWrapper)
+        trackingList += entityChangeWrapper
 
-        entityChangeWrapper.completionStage.whenComplete { _, u -> newEntities.remove(entityChangeWrapper) }
+        entityChangeWrapper.completionStage.whenComplete { _, u -> trackingList.remove(entityChangeWrapper) }
 
         return entityChangeWrapper.completionStage
     }
 
+    override fun trackNew(tracked: Entity): CompletionStage<Int> {
+        return trackEntity(tracked, newEntities)
+    }
+
     override fun trackDelete(tracked: Entity): CompletionStage<Int> {
-        val entityChangePublisher = EntityChangeWrapper(tracked)
-        deletedEntities.add(entityChangePublisher)
-        return entityChangePublisher.completionStage
+        return trackEntity(tracked, deletedEntities)
     }
 
     override fun trackChange(tracked: Entity): CompletionStage<Int> {
-        val entityChangePublisher = EntityChangeWrapper(tracked)
-        changedEntities.add(entityChangePublisher)
-        return entityChangePublisher.completionStage
+        return trackEntity(tracked, changedEntities)
     }
 
     /**
-     * Commit all tracked entity changes within a single commit.
+     * Commit all tracked entity changes within a single commit batching where possible.
      */
     override fun complete() {
-        dslContext.connection {
-            dslContext.transaction { ->
-                // Group all entities by their type so we can batch their updates by type
-
-                newEntities.groupBy { it.javaClass }
-                        // For each class type create a batch of
-                        .forEach {
-                            dslContext.batch(
-                                    it.value.map {
-                                        queryConfiguration.queryFor(changeType = ChangeType.Insert, entity = it, dslContext = dslContext)
-                                    }
-                            )
-                        }
-            }
+        transaction {
+            // Group all entities by their type so we can batch their updates by type
+            // We may be able to get away with just batching all updates in one single batch regardless of type,
+            // need to test
+            newEntities.groupBy { it.javaClass }
+                    // For each entity type create a batch of queries and execute.
+                    .forEach {
+                        batch(
+                                it.value.map {
+                                    queryConfiguration.queryFor(
+                                            changeType = ChangeType.Insert,
+                                            entity = it.trackedEntity
+                                    )
+                                }
+                        )
+                                .forEachIndexed { index, affectedCount ->
+                                    // Take each result from the batch update/insert/delete and complete the
+                                    // associated EntityChangeWrapper which will use its completion stage to
+                                    // notify any interested parties, e.g. to ensure an update was performed.
+                                    newEntities[index].complete(affectedCount)
+                                }
+                    }
         }
     }
 
-    class EntityChangeWrapper(val changedEntity: Entity) {
+    private class EntityChangeWrapper(val trackedEntity: Entity) {
         private val completableFuture = CompletableFuture<Int>()
         val completionStage: CompletionStage<Int> = completableFuture.minimalCompletionStage()
 

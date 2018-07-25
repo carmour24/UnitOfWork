@@ -1,7 +1,6 @@
 package com.opidis.ca.data
 
 import java.util.concurrent.CompletionStage
-import java.util.concurrent.Flow
 
 /**
  * Unit of work pattern

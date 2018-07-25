@@ -1,5 +1,8 @@
 package com.opidis.ca.data
 
+import org.jooq.DSLContext
+import org.jooq.SQLDialect
+import org.jooq.impl.DSL
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -44,16 +47,19 @@ internal class UnitOfWorkAwareUserTest {
 
         @BeforeEach
         fun setUp() {
-            unitOfWork = EntityTrackingUnitOfWork()
-
-            unitOfWorkAwareUser = UnitOfWorkAwareUser(name = "Chris", address = arrayOf(
-                    "Idox Software Ltd",
-                    "The Grosvenor Building",
-                    "72 Gordon Street",
-                    "Glasgow",
-                    "G1 3RS",
-                    "UK"
-            ))
+//            val dslContext = DSL.using(SQLDialect.POSTGRES_10)
+//            val queryCoordinator
+//
+//            unitOfWork = EntityTrackingUnitOfWork(queryConfiguration = EntityQueryMappingConfiguration(dslContext), )
+//
+//            unitOfWorkAwareUser = UnitOfWorkAwareUser(name = "Chris", address = arrayOf(
+//                    "Idox Software Ltd",
+//                    "The Grosvenor Building",
+//                    "72 Gordon Street",
+//                    "Glasgow",
+//                    "G1 3RS",
+//                    "UK"
+//            ))
         }
 
         @AfterEach
