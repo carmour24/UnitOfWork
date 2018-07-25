@@ -45,21 +45,38 @@ internal class UnitOfWorkAwareUserTest {
         private var unitOfWork: UnitOfWork<UnitOfWorkAwareUser>? = null
         private var unitOfWorkAwareUser: UnitOfWorkAwareUser? = null
 
+        class MockQuery
+
+        class MockQueryConfiguration : QueryMappingConfiguration<MockQuery> {
+            override fun queryFor(changeType: ChangeType, entity: Entity): MockQuery {
+                return MockQuery()
+            }
+        }
+
+        fun getQueryCoordinatorFor(numberOfResults: Int)= object : QueryCoordinator<MockQuery> {
+                var transactionBody: () -> Unit = { throw UninitializedPropertyAccessException() }
+
+                override fun transaction(transactional: () -> Unit) {
+                    transactionBody = transactional
+                }
+
+                override fun batch(queries: List<MockQuery>) = IntArray(numberOfResults) { 1 }
+            }
+
         @BeforeEach
         fun setUp() {
-//            val dslContext = DSL.using(SQLDialect.POSTGRES_10)
-//            val queryCoordinator
-//
-//            unitOfWork = EntityTrackingUnitOfWork(queryConfiguration = EntityQueryMappingConfiguration(dslContext), )
-//
-//            unitOfWorkAwareUser = UnitOfWorkAwareUser(name = "Chris", address = arrayOf(
-//                    "Idox Software Ltd",
-//                    "The Grosvenor Building",
-//                    "72 Gordon Street",
-//                    "Glasgow",
-//                    "G1 3RS",
-//                    "UK"
-//            ))
+
+            unitOfWork = DefaultEntityTrackingUnitOfWork(queryConfiguration = MockQueryConfiguration(),
+                    queryCoordinator = getQueryCoordinatorFor(1))
+
+            unitOfWorkAwareUser = UnitOfWorkAwareUser(name = "Chris", address = arrayOf(
+                    "Idox Software Ltd",
+                    "The Grosvenor Building",
+                    "72 Gordon Street",
+                    "Glasgow",
+                    "G1 3RS",
+                    "UK"
+            ))
         }
 
         @AfterEach
