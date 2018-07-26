@@ -1,0 +1,4 @@
+include 'jooq'
+include 'src:jooq'
+findProject(':src:jooq')?.name = 'jooq'
+
