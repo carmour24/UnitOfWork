@@ -64,28 +64,38 @@ class DefaultEntityTrackingUnitOfWork<TQuery>(
         // TODO: Need to add error handling to this function. Should probably be done in a subclass although maybe
         // providing a query error handling strategy would be more flexible. Having said that, maybe in the
         // coordinator or query mapping is more natural.
+        // TODO: Create queries first to reduce time spent in transaction
         queryCoordinator.transaction {
-            // Group all entities by their type so we can batch their updates by type
-            // We may be able to get away with just batching all updates in one single batch regardless of type,
-            // need to test
-            newEntities.groupBy { it.javaClass }
-                    // For each entity type create a batch of queries and execute.
-                    .forEach {
-                        queryCoordinator.batch(
-                                it.value.map {
-                                    queryConfiguration.queryFor(
-                                            changeType = ChangeType.Insert,
-                                            entity = it.trackedEntity
-                                    )
-                                }
-                        )
-                                .forEachIndexed { index, affectedCount ->
-                                    // Take each result from the batch update/insert/delete and complete the
-                                    // associated EntityChangeWrapper which will use its completion stage to
-                                    // notify any interested parties, e.g. to ensure an update was performed.
-                                    newEntities[index].complete(affectedCount)
-                                }
-                    }
+            // Group all entities by their type so we can batchExecute their updates by type
+            // TODO: We may be able to get away with just batching all updates in one single batchExecute regardless of
+            // type, need to test once this is plugged into Jooq
+            for (entityChangeMap in mapOf(
+                    (newEntities to ChangeType.Insert),
+                    (changedEntities to ChangeType.Update),
+                    (deletedEntities to ChangeType.Delete)
+            )) {
+                val entityListForChangeType = entityChangeMap.component1()
+                val changeType = entityChangeMap.component2()
+
+                entityListForChangeType.groupBy { it.javaClass }
+                        // For each entity type create a batchExecute of queries and execute.
+                        .forEach {
+                            queryCoordinator.batchExecute(
+                                    it.value.map {
+                                        queryConfiguration.queryFor(
+                                                changeType = changeType,
+                                                entity = it.trackedEntity
+                                        )
+                                    }
+                            )
+                                    .forEachIndexed { index, affectedCount ->
+                                        // Take each result from the batchExecute update/insert/delete and complete the
+                                        // associated EntityChangeWrapper which will use its completion stage to
+                                        // notify any interested parties, e.g. to ensure an update was performed.
+                                        entityListForChangeType[index].complete(affectedCount)
+                                    }
+                        }
+            }
         }
     }
 

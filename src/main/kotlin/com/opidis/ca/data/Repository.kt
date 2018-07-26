@@ -17,7 +17,7 @@ abstract class CrudRepository<T, ID>(protected val queryExecutor: QueryExecutor?
 //            return Mono.just(query.execute() as S)
         }
 
-        // If we have a query executor, then invoke that. E.g. to batch inserts within a transaction
+        // If we have a query executor, then invoke that. E.g. to batchExecute inserts within a transaction
         // Or to run all queries synchronously on a specific thread distinct from the event loop thread.
         // Unchecked cast, is there a better way to do this? We do want an exception if this cast fails
         // for some reason so I expect this will be fine.

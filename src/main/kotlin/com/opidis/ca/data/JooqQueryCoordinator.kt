@@ -7,5 +7,5 @@ class JooqQueryCoordinator(private val dslContext: DSLContext) : QueryCoordinato
 
     override fun transaction(transactional: () -> Unit) = dslContext.connection { dslContext.transaction(transactional) }
 
-    override fun batch(queries: List<Query>): IntArray = dslContext.batch(queries).execute()
+    override fun batchExecute(queries: List<Query>): IntArray = dslContext.batch(queries).execute()
 }
