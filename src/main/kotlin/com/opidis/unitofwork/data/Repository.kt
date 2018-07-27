@@ -1,14 +1,15 @@
 package com.opidis.unitofwork.data
 
 import org.jooq.Query
-import org.reactivestreams.Publisher
+import java.util.concurrent.Flow
+
 //import reactor.core.publisher.Mono
 
-typealias QueryExecutor = (Query) -> Publisher<*>
+typealias QueryExecutor = (Query) -> Flow.Publisher<*>
 
 abstract class CrudRepository<T, ID>(protected val queryExecutor: QueryExecutor? = null) {
 
-    protected inline fun <reified S>executeQuery(query: Query): Publisher<S> {
+    protected inline fun <reified S>executeQuery(query: Query): Flow.Publisher<S> {
         // If we don't have a query executor defined then execute the query just now
         // and return a mono with the content.
         if (queryExecutor == null) {
@@ -21,7 +22,7 @@ abstract class CrudRepository<T, ID>(protected val queryExecutor: QueryExecutor?
         // Or to run all queries synchronously on a specific thread distinct from the event loop thread.
         // Unchecked cast, is there a better way to do this? We do want an exception if this cast fails
         // for some reason so I expect this will be fine.
-        return queryExecutor?.invoke(query) as Publisher<S>
+        return queryExecutor?.invoke(query) as Flow.Publisher<S>
     }
 
     /*

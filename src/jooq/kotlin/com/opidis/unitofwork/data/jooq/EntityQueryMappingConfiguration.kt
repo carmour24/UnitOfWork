@@ -1,5 +1,8 @@
-package com.opidis.unitofwork.data
+package com.opidis.unitofwork.data.jooq
 
+import com.opidis.unitofwork.data.ChangeType
+import com.opidis.unitofwork.data.Entity
+import com.opidis.unitofwork.data.QueryMappingConfiguration
 import org.jooq.DSLContext
 import org.jooq.Query
 

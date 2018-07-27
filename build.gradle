@@ -51,6 +51,19 @@ repositories {
     jcenter()
 }
 
+projects {
+    jooq {
+        dependencies {
+            compile("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
+            compile("org.jooq:jooq:${jooqVersion}")
+            compile("org.jooq:jooq-meta:${jooqVersion}")
+            compile("org.jooq:jooq-codegen:${jooqVersion}")
+            compile('org.postgresql:postgresql:42.2.3')
+            implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
+        }
+    }
+}
+
 flyway {
     url = 'jdbc:postgresql://localhost/postgres'
     user = 'postgres'
@@ -60,15 +73,22 @@ flyway {
 
 // setup the test task
 test {
-	useJUnitPlatform()
+    useJUnitPlatform()
 
-	testLogging {
-		events "passed", "skipped", "failed"
-	}
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
 
-	reports {
-		html.enabled = true
-	}
+    reports {
+        html.enabled = true
+    }
+}
+
+sourceSets {
+    jooq {
+        kotlin.srcDirs += './src/jooq/kotlin'
+        java.srcDirs += './src/jooq/java'
+    }
 }
 
 dependencies {
@@ -82,7 +102,7 @@ dependencies {
     compile("org.jooq:jooq-meta:${jooqVersion}")
     compile("org.jooq:jooq-codegen:${jooqVersion}")
     compile('org.postgresql:postgresql:42.2.3')
-    compile("org.reactivestreams:reactive-streams:1.0.2")
+//    compile("org.reactivestreams:reactive-streams:1.0.2")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
 
