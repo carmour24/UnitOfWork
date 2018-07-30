@@ -2,7 +2,6 @@ buildscript {
     ext {
         kotlinVersion = '1.2.51'
         springBootVersion = '2.0.3.RELEASE'
-        jooqVersion = '3.11.2'
         dokkaVersion = '0.9.17'
         junitVersion = '5.2.0'
     }
@@ -28,40 +27,27 @@ plugins {
     id 'org.flywaydb.flyway' version '5.1.4'
 }
 
-apply plugin: 'kotlin'
-apply plugin: 'java'
-apply plugin: 'nu.studer.jooq'
-apply plugin: 'org.jetbrains.dokka'
-//apply plugin: 'kotlin-spring'
-//apply plugin: 'org.springframework.boot'
-//apply plugin: 'io.spring.dependency-management'
+allprojects {
+    apply plugin: 'kotlin'
+    apply plugin: 'java'
+    apply plugin: 'org.jetbrains.dokka'
 
-group = 'com.opidis.ca.unit-of-work'
-version = '0.0.1-SNAPSHOT'
-sourceCompatibility = "1.8"
-compileKotlin {
-    kotlinOptions {
-        freeCompilerArgs = ["-Xjsr305=strict"]
-        jvmTarget = "1.8"
-    }
-}
-
-repositories {
-    mavenCentral()
-    jcenter()
-}
-
-projects {
-    jooq {
-        dependencies {
-            compile("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
-            compile("org.jooq:jooq:${jooqVersion}")
-            compile("org.jooq:jooq-meta:${jooqVersion}")
-            compile("org.jooq:jooq-codegen:${jooqVersion}")
-            compile('org.postgresql:postgresql:42.2.3')
-            implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
+    group = 'com.opidis.ca.unit-of-work'
+    version = '0.0.1-SNAPSHOT'
+    sourceCompatibility = "1.8"
+    compileKotlin {
+        kotlinOptions {
+            freeCompilerArgs = ["-Xjsr305=strict"]
+            jvmTarget = "1.8"
         }
     }
+
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+
+// setup the test task for all projects
 }
 
 flyway {
@@ -71,49 +57,16 @@ flyway {
     schemas = ['public']
 }
 
-// setup the test task
-test {
-    useJUnitPlatform()
-
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
-
-    reports {
-        html.enabled = true
-    }
-}
-
-sourceSets {
-    jooq {
-        kotlin.srcDirs += './src/jooq/kotlin'
-        java.srcDirs += './src/jooq/java'
-    }
-}
 
 dependencies {
-//    compile("org.springframework.boot:spring-boot-starter-webflux")
-//    compile("org.springframework.boot:spring-boot-starter-jooq:2.0.3.RELEASE")
-//    compile("com.fasterxml.jackson.module:jackson-module-kotlin")
-//    compile 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
-    compile("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
-//    compile("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
-    compile("org.jooq:jooq:${jooqVersion}")
-    compile("org.jooq:jooq-meta:${jooqVersion}")
-    compile("org.jooq:jooq-codegen:${jooqVersion}")
-    compile('org.postgresql:postgresql:42.2.3')
-//    compile("org.reactivestreams:reactive-streams:1.0.2")
-
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
+    allprojects {
+        compile("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
+        implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
+    }
 
     testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
-
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
-//    runtime("org.springframework.boot:spring-boot-devtools")
-
-//    testCompile("org.springframework.boot:spring-boot-starter-test")
-//    testCompile("io.projectreactor:reactor-test")
 }
 
 
