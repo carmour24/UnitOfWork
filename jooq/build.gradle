@@ -26,11 +26,6 @@ dependencies {
     compile project(":library")
     compile "org.jooq:jooq:${jooqVersion}"
     compile "org.postgresql:postgresql:$postgresVersion"
-    testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
-    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
-    testCompileClasspath "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
-    testRuntimeClasspath("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
 
     jooqRuntime 'javax.activation:activation:1.1.1'
     jooqRuntime "javax.xml.bind:jaxb-api:$jaxbVersion"

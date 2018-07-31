@@ -1,6 +1,0 @@
-dependencies {
-    testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
-    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
-    testCompileClasspath "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
-}
