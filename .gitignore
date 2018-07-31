@@ -1,7 +1,7 @@
 .gradle
 lib
 pgdata
-*/build/
+**/build/
 .idea
 out
 
