@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-3.11.0.xsd">
+<configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-3.11.0.xsd"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://www.jooq.org/xsd/jooq-codegen-3.11.0.xsd ">
     <!-- Configure the database connection here -->
     <jdbc>
         <driver>org.postgresql.Driver</driver>
@@ -80,10 +82,10 @@
                  Use the pipe to separate several expressions). Excludes match before
                  includes, i.e. excludes have a higher priority -->
             <excludes>
-                UNUSED_TABLE                # This table (unqualified name) should not be generated
-                | PREFIX_.*                   # Objects with a given prefix should not be generated
+                UNUSED_TABLE # This table (unqualified name) should not be generated
+                | PREFIX_.* # Objects with a given prefix should not be generated
                 | SECRET_SCHEMA\.SECRET_TABLE # This table (qualified name) should not be generated
-                | SECRET_ROUTINE              # This routine (unqualified name) ...
+                | SECRET_ROUTINE # This routine (unqualified name) ...
             </excludes>
 
             <!-- The schema that is used locally as a source for meta information.
@@ -96,6 +98,7 @@
         </database>
 
         <generate>
+            <pojos></pojos>
             <!-- Generation flags: See advanced configuration properties -->
         </generate>
 
@@ -109,7 +112,7 @@
             <packageName>com.opidis.unitofwork.data.generated</packageName>
 
             <!-- The destination directory of your generated classes -->
-            <directory>../jooq/java/</directory>
+            <directory>../main/java/</directory>
         </target>
     </generator>
 </configuration>

@@ -32,7 +32,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Public extends SchemaImpl {
 
-    private static final long serialVersionUID = 1713699493;
+    private static final long serialVersionUID = 484703231;
 
     /**
      * The reference instance of <code>public</code>
@@ -42,17 +42,17 @@ public class Public extends SchemaImpl {
     /**
      * The table <code>public.flyway_schema_history</code>.
      */
-    public final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
+    public final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = com.opidis.unitofwork.data.generated.tables.FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
 
     /**
      * The table <code>public.tbl1</code>.
      */
-    public final Tbl1 TBL1 = Tbl1.TBL1;
+    public final Tbl1 TBL1 = com.opidis.unitofwork.data.generated.tables.Tbl1.TBL1;
 
     /**
      * The table <code>public.tbl2</code>.
      */
-    public final Tbl2 TBL2 = Tbl2.TBL2;
+    public final Tbl2 TBL2 = com.opidis.unitofwork.data.generated.tables.Tbl2.TBL2;
 
     /**
      * No further instances allowed

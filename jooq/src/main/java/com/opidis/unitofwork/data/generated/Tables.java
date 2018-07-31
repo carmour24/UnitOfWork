@@ -27,15 +27,15 @@ public class Tables {
     /**
      * The table <code>public.flyway_schema_history</code>.
      */
-    public static final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
+    public static final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = com.opidis.unitofwork.data.generated.tables.FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
 
     /**
      * The table <code>public.tbl1</code>.
      */
-    public static final Tbl1 TBL1 = Tbl1.TBL1;
+    public static final Tbl1 TBL1 = com.opidis.unitofwork.data.generated.tables.Tbl1.TBL1;
 
     /**
      * The table <code>public.tbl2</code>.
      */
-    public static final Tbl2 TBL2 = Tbl2.TBL2;
+    public static final Tbl2 TBL2 = com.opidis.unitofwork.data.generated.tables.Tbl2.TBL2;
 }

@@ -41,7 +41,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class FlywaySchemaHistory extends TableImpl<FlywaySchemaHistoryRecord> {
 
-    private static final long serialVersionUID = -937518619;
+    private static final long serialVersionUID = 979060897;
 
     /**
      * The reference instance of <code>public.flyway_schema_history</code>

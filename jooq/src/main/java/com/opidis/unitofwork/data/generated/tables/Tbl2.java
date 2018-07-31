@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Tbl2 extends TableImpl<Tbl2Record> {
 
-    private static final long serialVersionUID = -534633582;
+    private static final long serialVersionUID = -1856388266;
 
     /**
      * The reference instance of <code>public.tbl2</code>

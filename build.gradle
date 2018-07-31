@@ -15,22 +15,18 @@ buildscript {
     }
 
     dependencies {
-//        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
         classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
         classpath("org.jetbrains.dokka:dokka-gradle-plugin:${dokkaVersion}")
     }
 }
 
-plugins {
-    id 'nu.studer.jooq' version '3.0.1'
-    id 'org.flywaydb.flyway' version '5.1.4'
-}
 
-allprojects {
+apply plugin: 'org.jetbrains.dokka'
+
+subprojects {
     apply plugin: 'kotlin'
     apply plugin: 'java'
-    apply plugin: 'org.jetbrains.dokka'
 
     group = 'com.opidis.ca.unit-of-work'
     version = '0.0.1-SNAPSHOT'
@@ -48,27 +44,27 @@ allprojects {
     }
 
 // setup the test task for all projects
-}
+    test {
+        useJUnitPlatform()
 
-flyway {
-    url = 'jdbc:postgresql://localhost/postgres'
-    user = 'postgres'
-    password = 'password'
-    schemas = ['public']
-}
+        testLogging {
+            events "passed", "skipped", "failed"
+        }
 
-
-dependencies {
-    allprojects {
-        compile("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
-        implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
+        reports {
+            html.enabled = true
+        }
     }
 
-    testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
-    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
-}
+    dependencies {
+        compile("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
+        implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
 
+        testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
+        testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+    }
+}
 
 dokka {
     outputFormat = 'html'

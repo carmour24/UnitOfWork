@@ -3,8 +3,11 @@ package com.opidis.unitofwork.data.jooq
 
 import com.opidis.unitofwork.data.ChangeType
 import com.opidis.unitofwork.data.Entity
+import com.opidis.unitofwork.data.generated.tables.pojos.Tbl1
+import com.opidis.unitofwork.data.generated.tables.records.Tbl1Record
 import com.opidis.unitofwork.data.jooq.EntityQueryMappingConfiguration
 import org.jooq.Configuration
+import org.jooq.InsertQuery
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
 import org.jooq.impl.DefaultConfiguration
@@ -18,16 +21,12 @@ import org.junit.jupiter.api.Test
 import java.sql.Connection
 
 internal class EntityQueryMappingConfigurationTest {
-    private var entityQueryMappingConfiguration : EntityQueryMappingConfiguration? = null
+    private var entityQueryMappingConfiguration: EntityQueryMappingConfiguration? = null
     private var connection: Connection? = null
 
     @BeforeEach
     fun setUp() {
-
-        val jooqConfiguration: Configuration = DefaultConfiguration()
-        val mockConfiguration:Configuration = MockConfiguration(jooqConfiguration, null)
-
-        val mockDataProvider = MockDataProvider {
+       val mockDataProvider = MockDataProvider {
             arrayOf(
                     MockResult(1)
             )
@@ -43,22 +42,60 @@ internal class EntityQueryMappingConfigurationTest {
     fun tearDown() {
     }
 
-    class Entity1(val Id: Int, name: String, val foreignName: Entity2? = null) : Entity
-
-    class Entity2(val Id: Int, foreignName: String) : Entity
 
     @Test
     fun mapQueryForNewEntity1ToTlb1Record() {
-        val query = entityQueryMappingConfiguration!!.queryFor(ChangeType.Insert, Entity1(10, name = "Chris"))
+        val entity = Entity1(10, "Chris")
+        val query = entityQueryMappingConfiguration!!.queryFor(ChangeType.Insert, entity = entity)
+
+        assert(query.bindValues.filterNotNull().size == 2) {
+            "Two parameters should be specified"
+        }
 
         assert(query.bindValues.elementAt(0) == 10) {
-            "First parameter to query should be 10"
+            "Parameter list should contain '10'"
         }
 
-        assert(query.bindValues.elementAt(1) == "Chris") {
-            "Second parameter to query should be 'Chris'"
+        assert(query.bindValues.any { it == "Chris" }) {
+            "Parameter list should contain 'Chris'"
         }
 
-        assert(query.sql.contains("insert.*Tlb1", ignoreCase = true))
+        assert(query.sql.contains(Regex("^insert\\s+into.*tbl1.*", RegexOption.IGNORE_CASE)))
+    }
+
+    @Test
+    fun mapQueryForUpdatedEntity1ToTlb1Record() {
+        val entity = Entity1(10, "Chris")
+        val query = entityQueryMappingConfiguration!!.queryFor(ChangeType.Update, entity = entity)
+
+        assert(query.bindValues.filterNotNull().size == 2) {
+            "Two parameters should be specified"
+        }
+
+        assert(query.bindValues.elementAt(0) == 10) {
+            "Parameter list should contain '10'"
+        }
+
+        assert(query.bindValues.any { it == "Chris" }) {
+            "Parameter list should contain 'Chris'"
+        }
+
+        assert(query.sql.contains(Regex("^update.*tbl1.*", RegexOption.IGNORE_CASE)))
+    }
+
+    @Test
+    fun mapQueryForDeletedEntity1ToTlb1Record() {
+        val entity = Entity1(10, "Chris")
+        val query = entityQueryMappingConfiguration!!.queryFor(ChangeType.Delete, entity = entity)
+
+        assert(query.bindValues.size == 1) {
+            "One parameter should be specified"
+        }
+
+        assert(query.bindValues.elementAt(0) == 10) {
+            "Parameter list should contain '10'"
+        }
+
+        assert(query.sql.contains(Regex("^delete\\s+from.*tbl1.*", RegexOption.IGNORE_CASE)))
     }
 }

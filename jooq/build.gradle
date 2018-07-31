@@ -1,34 +1,79 @@
 buildscript {
     ext {
         jooqVersion = '3.11.2'
+        jaxbVersion = '2.3.0'
+        postgresVersion = '42.2.3'
+    }
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath "org.jooq:jooq-codegen:$jooqVersion"
+        classpath "javax.activation:activation:1.1.1"
+        classpath "javax.xml.bind:jaxb-api:$jaxbVersion"
+        classpath "com.sun.xml.bind:jaxb-impl:$jaxbVersion"
+        classpath "com.sun.xml.bind:jaxb-core:$jaxbVersion"
     }
 }
 
-//apply plugin: 'nu.studer.jooq'
-apply plugin: 'kotlin'
-apply plugin: 'java'
-
-sourceCompatibility = "1.8"
+plugins {
+    id 'nu.studer.jooq' version '3.0.0'
+    id 'org.flywaydb.flyway' version '5.1.4'
+}
 
 dependencies {
     compile project(":library")
     compile "org.jooq:jooq:${jooqVersion}"
-    compile 'org.postgresql:postgresql:42.2.3'
+    compile "org.postgresql:postgresql:$postgresVersion"
     testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
     testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
     testCompileClasspath "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
     testRuntimeClasspath("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
     testRuntime("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+
+    jooqRuntime 'javax.activation:activation:1.1.1'
+    jooqRuntime "javax.xml.bind:jaxb-api:$jaxbVersion"
+    jooqRuntime "com.sun.xml.bind:jaxb-core:$jaxbVersion"
+    jooqRuntime "com.sun.xml.bind:jaxb-impl:$jaxbVersion"
+    jooqRuntime "org.postgresql:postgresql:$postgresVersion"
 }
 
-test {
-    useJUnitPlatform()
-
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
-
-    reports {
-        html.enabled = true
+jooq {
+    version = '3.11.2'
+    edition = 'OSS'
+    tables(sourceSets.main) {
+        jdbc {
+            driver = 'org.postgresql.Driver'
+            url = 'jdbc:postgresql://localhost/postgres'
+            user = 'postgres'
+            password = 'password'
+        }
+        generator {
+            name = 'org.jooq.codegen.DefaultGenerator'
+            database {
+                name = 'org.jooq.meta.postgres.PostgresDatabase'
+                inputSchema = 'public'
+                includes = '.*'
+                excludes = 'FlywaySchemaHistory'
+            }
+            generate {
+                pojos = true
+            }
+            target {
+                packageName = 'com.opidis.unitofwork.data.generated'
+                directory = 'src/main/java'
+            }
+        }
     }
 }
+
+project.tasks.getByName('compileJava').dependsOn -= 'generateSampleJooqSchemaSource'
+
+flyway {
+    url = 'jdbc:postgresql://localhost/postgres'
+    user = 'postgres'
+    password = 'password'
+    schemas = ['public']
+}
+

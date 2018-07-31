@@ -62,6 +62,6 @@ public class Keys {
     }
 
     private static class ForeignKeys0 {
-        public static final ForeignKey<Tbl1Record, Tbl2Record> TBL1__TBL1_FOREIGN_NAME_FKEY = Internal.createForeignKey(Keys.TLB2_PKEY, Tbl1.TBL1, "tbl1__tbl1_foreign_name_fkey", Tbl1.TBL1.FOREIGN_NAME);
+        public static final ForeignKey<Tbl1Record, Tbl2Record> TBL1__TBL1_FOREIGN_NAME_FKEY = Internal.createForeignKey(com.opidis.unitofwork.data.generated.Keys.TLB2_PKEY, Tbl1.TBL1, "tbl1__tbl1_foreign_name_fkey", Tbl1.TBL1.FOREIGN_NAME);
     }
 }
