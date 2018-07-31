@@ -26,12 +26,14 @@ dependencies {
     compile project(":library")
     compile "org.jooq:jooq:${jooqVersion}"
     compile "org.postgresql:postgresql:$postgresVersion"
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'
 
     jooqRuntime 'javax.activation:activation:1.1.1'
     jooqRuntime "javax.xml.bind:jaxb-api:$jaxbVersion"
     jooqRuntime "com.sun.xml.bind:jaxb-core:$jaxbVersion"
     jooqRuntime "com.sun.xml.bind:jaxb-impl:$jaxbVersion"
     jooqRuntime "org.postgresql:postgresql:$postgresVersion"
+    jooqRuntime group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'
 }
 
 jooq {
@@ -53,7 +55,7 @@ jooq {
                 excludes = 'FlywaySchemaHistory'
             }
             generate {
-                pojos = true
+                pojos = false
             }
             target {
                 packageName = 'com.opidis.unitofwork.data.generated'
@@ -63,7 +65,10 @@ jooq {
     }
 }
 
-project.tasks.getByName('compileJava').dependsOn -= 'generateSampleJooqSchemaSource'
+// Remove the code generation from SQL tasks for the
+project.tasks.getByName('compileJava').dependsOn -= 'generateTablesJooqSchemaSource'
+//project.tasks.getByName('compileKotlin').dependsOn -= 'generateTablesJooqSchemaSource'
+
 
 flyway {
     url = 'jdbc:postgresql://localhost/postgres'

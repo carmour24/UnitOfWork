@@ -2,19 +2,10 @@ package com.opidis.unitofwork.data.jooq
 
 
 import com.opidis.unitofwork.data.ChangeType
-import com.opidis.unitofwork.data.Entity
-import com.opidis.unitofwork.data.generated.tables.pojos.Tbl1
-import com.opidis.unitofwork.data.generated.tables.records.Tbl1Record
-import com.opidis.unitofwork.data.jooq.EntityQueryMappingConfiguration
-import org.jooq.Configuration
-import org.jooq.InsertQuery
 import org.jooq.SQLDialect
 import org.jooq.impl.DSL
-import org.jooq.impl.DefaultConfiguration
-import org.jooq.tools.jdbc.MockConfiguration
 import org.jooq.tools.jdbc.MockConnection
 import org.jooq.tools.jdbc.MockDataProvider
-import org.jooq.tools.jdbc.MockResult
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -27,9 +18,7 @@ internal class EntityQueryMappingConfigurationTest {
     @BeforeEach
     fun setUp() {
        val mockDataProvider = MockDataProvider {
-            arrayOf(
-                    MockResult(1)
-            )
+            emptyArray()
         }
 
         connection = MockConnection(mockDataProvider)

@@ -8,15 +8,21 @@ import com.opidis.unitofwork.data.generated.tables.records.Tbl1Record
 import org.jooq.*
 
 /**
- *
+ * Custom
  */
 class EntityQueryMappingConfiguration(private val dslContext: DSLContext) : QueryMappingConfiguration<Query> {
     override fun queryFor(changeType: ChangeType, entity: Entity): Query {
-        val entity1 = entity as Entity1
+        return when(entity) {
+            entity as? Entity1 -> queryFor(entity, changeType = changeType)
+            else -> throw Exception("Unsupported entity type supplied for query generation")
+        }
+    }
 
-        // Map user record from user entity
+    private fun queryFor(entity: Entity1, changeType: ChangeType) : Query {
+
+        // Map user record from user entity using the built in Jooq mapper functionality
         val userRecord = Tbl1Record()
-        userRecord.from(entity1)
+        userRecord.from(entity)
 
         return when (changeType) {
             ChangeType.Insert -> {
@@ -30,11 +36,12 @@ class EntityQueryMappingConfiguration(private val dslContext: DSLContext) : Quer
                 query
             }
             ChangeType.Delete -> {
-                // Use
+                // Example of using DSL to create a query. We can use this for writing complicated queries by hand.
+                // Can use "with" to make writing the query more natural (e.g. use ID directly rather than TBL1.ID)
                 with(TBL1) {
                     dslContext
                             .delete(TBL1)
-                            .where(ID.eq(entity1.Id))
+                            .where(ID.eq(entity.Id))
                 }
             }
         }
