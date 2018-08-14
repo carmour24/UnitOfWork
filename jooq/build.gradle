@@ -27,6 +27,7 @@ dependencies {
     compile "org.jooq:jooq:${jooqVersion}"
     compile "org.postgresql:postgresql:$postgresVersion"
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.1'
 
     jooqRuntime 'javax.activation:activation:1.1.1'
     jooqRuntime "javax.xml.bind:jaxb-api:$jaxbVersion"
@@ -34,6 +35,10 @@ dependencies {
     jooqRuntime "com.sun.xml.bind:jaxb-impl:$jaxbVersion"
     jooqRuntime "org.postgresql:postgresql:$postgresVersion"
     jooqRuntime group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'
+    jooqRuntime group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.1'
+
+    testCompile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'
+    testCompile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.1'
 }
 
 jooq {
