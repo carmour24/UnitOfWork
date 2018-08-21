@@ -8,5 +8,5 @@ interface QueryMappingConfiguration<out TQuery> {
     /**
      * Produce a query to update the [entity] in the database for this [changeType].
      */
-    fun <T: Entity>queryFor(changeType: ChangeType, entity: List<T>): List<TQuery>
+    fun <T: Entity>queryFor(changeType: ChangeType, entities: List<T>): TQuery
 }

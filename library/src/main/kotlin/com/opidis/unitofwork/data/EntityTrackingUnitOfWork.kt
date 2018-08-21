@@ -84,7 +84,7 @@ class DefaultEntityTrackingUnitOfWork<TQuery>(
                                     it.value.map {
                                         queryConfiguration.queryFor(
                                                 changeType = changeType,
-                                                entity = it.trackedEntity
+                                                entities = listOf(it.trackedEntity)
                                         )
                                     }
                             )
