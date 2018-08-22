@@ -9,9 +9,6 @@ buildscript {
     repositories {
         mavenCentral()
         jcenter()
-        maven {
-            url "https://dl.bintray.com/spekframework/spek-dev"
-        }
     }
 
     dependencies {

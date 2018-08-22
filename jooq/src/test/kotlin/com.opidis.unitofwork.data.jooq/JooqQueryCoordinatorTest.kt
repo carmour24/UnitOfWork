@@ -3,10 +3,8 @@ package com.opidis.unitofwork.data.jooq
 
 import com.opidis.unitofwork.data.generated.Tables.TBL1
 import com.opidis.unitofwork.data.generated.tables.records.Tbl1Record
-import org.apache.logging.log4j.Level
-import org.apache.logging.log4j.core.appender.TlsSyslogFrame
 import org.jooq.DSLContext
-import org.jooq.Log
+import org.jooq.conf.ParamType
 import org.jooq.tools.jdbc.MockConnection
 import org.jooq.tools.jdbc.MockDataProvider
 import org.jooq.tools.jdbc.MockResult
@@ -17,8 +15,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.sql.Connection
 import java.util.logging.LogManager
-import java.util.logging.Logger
-import kotlin.math.log
 
 internal class JooqQueryCoordinatorTest {
     private var connection: Connection? = null
@@ -36,7 +32,7 @@ internal class JooqQueryCoordinatorTest {
 
         val mockDataProvider = MockDataProvider {
             batchSql = it.batchSQL()
-            println("${batchSql.joinToString(separator = "\n")}")
+            println(batchSql.joinToString(separator = "\n"))
             arrayOf(
                     MockResult(batchSql.size)
             )
@@ -180,9 +176,57 @@ internal class JooqQueryCoordinatorTest {
             val affectedCount = jooqQueryCoordinator!!.batchExecute(listOf(query1, query2))
 
 //            assert(batchSql.size == 2) { "Batch size should be 2 for 2 updates not ${batchSql.size}" }
+            assert(affectedCount.size == 2) {"Count of affected entries should be 2"}
             assert(affectedCount.sum() == 2) { "Affected count should be 2 for 2 updates not $affectedCount" }
         }
 
+        @Test
+        fun shouldGenerateNumberedParams() {
+            val record1 = Tbl1Record()
+            record1.id = 11
+            record1.name = "Chris"
+
+            val record2 = Tbl1Record()
+            record2.id = 21
+            record2.name = "Yoni"
+
+//            val query = dslContext!!.insertInto(TBL1).columns(TBL1.NAME, TBL1.FOREIGN_NAME)
+            val queryStep = dslContext!!.insertInto(TBL1)
+            queryStep.set(record1)
+            queryStep.set(record2)
+//            val query = queryStep.columns(TBL1.NAME, TBL1.FOREIGN_NAME).returningResult(TBL1.ID)
+            val query = queryStep.columns(TBL1.NAME, TBL1.FOREIGN_NAME)
+
+//            query.values(rStepecord1.name, record1.foreignName)
+//            query.values(record2.name, record2.foreignName)
+            val sql = query.getSQL(ParamType.INDEXED)
+
+//            assert(sql.contains("$")) {"SQL Should have numbered params\n $sql" }
+
+            val results = query.execute()
+            assert(results == 2) {"Should have two results for two inserts"}
+        }
+
+        @Test
+        fun shouldGenerateNumberedParams2() {
+            val record1 = Tbl1Record()
+            record1.id = 11
+            record1.name = "Chris"
+
+            val record2 = Tbl1Record()
+            record2.id = 21
+            record2.name = "Yoni"
+
+            val query = dslContext!!.insertInto(TBL1).columns(TBL1.NAME, TBL1.FOREIGN_NAME)
+            query.values(record1.name, record1.foreignName)
+            query.values(record2.name, record2.foreignName)
+            val queryReturningIds = query.returningResult(TBL1.ID)
+
+            val sql = query.getSQL(ParamType.INDEXED)
+
+            val results = queryReturningIds.fetch()
+            assert(results.size == 2) {"Should have two results for two inserts"}
+    }
         @Test
         fun shouldBatchMultipleInsertQueries2() {
             val record1 = Tbl1Record()
@@ -196,6 +240,7 @@ internal class JooqQueryCoordinatorTest {
             val affectedCount = dslContext!!.batchInsert(record1, record2).execute()
 
 //            assert(batchSql.size == 2) { "Batch size should be 2 for 2 updates not ${batchSql.size}" }
+            assert(affectedCount.size == 2) {"Count of affected entries should be 2"}
             assert(affectedCount.sum() == 2) { "Affected count should be 2 for 2 updates not $affectedCount" }
         }
     }
