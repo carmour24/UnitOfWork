@@ -15,6 +15,7 @@ buildscript {
     }
 
     dependencies {
+        classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
         classpath("org.jetbrains.kotlin:kotlin-allopen:${kotlinVersion}")
         classpath("org.jetbrains.dokka:dokka-gradle-plugin:${dokkaVersion}")

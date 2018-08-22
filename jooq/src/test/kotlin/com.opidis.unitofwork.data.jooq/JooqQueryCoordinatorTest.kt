@@ -139,7 +139,7 @@ internal class JooqQueryCoordinatorTest {
         }
 
         @Test
-        fun shouldBatchMultipleInsertQueries3() {
+        fun shouldPerformMultipleInsertsInSingleQuery() {
             val record1 = Tbl1Record()
             record1.id = 11
             record1.name = "Chris"
