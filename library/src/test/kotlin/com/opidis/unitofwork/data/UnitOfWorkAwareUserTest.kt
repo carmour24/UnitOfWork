@@ -49,29 +49,30 @@ internal class UnitOfWorkAwareUserTest {
             val listOfUserChanges = ArrayList<UnitOfWorkAwareUser>()
             val listOfUserAdditions = ArrayList<UnitOfWorkAwareUser>()
             val listOfUserDeletions = ArrayList<UnitOfWorkAwareUser>()
-            override fun queryFor(changeType: ChangeType, entity: Entity): MockQuery {
-                print("$entity ${entity.javaClass} ${entity.javaClass.kotlin}")
+            override fun <T : Entity> queryFor(changeType: ChangeType, entities: List<T>): MockQuery {
+                entities.forEach { entity ->
+                    print("$entity ${entity.javaClass} ${entity.javaClass.kotlin}")
 
-                val entityAsUser = entity as UnitOfWorkAwareUser
+                    val entityAsUser = entity as UnitOfWorkAwareUser
 
-                when(changeType) {
-                    ChangeType.Delete -> listOfUserDeletions.add(entityAsUser)
-                    ChangeType.Insert -> listOfUserAdditions.add(entityAsUser)
-                    ChangeType.Update -> listOfUserChanges.add(entityAsUser)
+                    when (changeType) {
+                        ChangeType.Delete -> listOfUserDeletions.add(entityAsUser)
+                        ChangeType.Insert -> listOfUserAdditions.add(entityAsUser)
+                        ChangeType.Update -> listOfUserChanges.add(entityAsUser)
+                    }
                 }
-
                 return MockQuery()
             }
         }
 
-        private fun getQueryCoordinatorFor(numberOfResults: Int)= object : QueryCoordinator<MockQuery> {
-                override fun transaction(transactional: () -> Unit) {
-                    // Execute the body of the transaction, e.g. query generation and execution.
-                    transactional()
-                }
-
-                override fun batchExecute(queries: List<MockQuery>) = IntArray(numberOfResults) { 1 }
+        private fun getQueryCoordinatorFor(numberOfResults: Int) = object : QueryCoordinator<MockQuery> {
+            override fun transaction(transactional: () -> Unit) {
+                // Execute the body of the transaction, e.g. query generation and execution.
+                transactional()
             }
+
+            override fun batchExecute(queries: List<MockQuery>) = IntArray(numberOfResults) { 1 }
+        }
 
         @BeforeEach
         fun setUp() {
