@@ -33,7 +33,7 @@ interface UnitOfWork<in Tracked> {
     /**
      * Persist all changes recorded with [trackChange] to the database within a single transaction.
      */
-    fun complete()
+    fun complete() : CompletionStage<Void>
 }
 
 

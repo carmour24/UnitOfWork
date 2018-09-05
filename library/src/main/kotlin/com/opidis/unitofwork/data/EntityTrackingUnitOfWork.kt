@@ -1,6 +1,7 @@
 package com.opidis.unitofwork.data
 
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletableFuture.allOf
 import java.util.concurrent.CompletionStage
 
 //val jooqEntityTrackingUnitOfWork = EntityTrackingUnitOfWork(EntityQueryMappingConfiguration(DSL.using("")), JooqQueryCoordinator
@@ -29,7 +30,7 @@ typealias EntityTrackingUnitOfWork = UnitOfWork<Entity>
  * are executed by the [queryCoordinator].
  *
  */
-class DefaultEntityTrackingUnitOfWork<TQuery>(
+open class DefaultEntityTrackingUnitOfWork<TQuery>(
         private val queryConfiguration: QueryMappingConfiguration<TQuery>,
         private val queryCoordinator: QueryCoordinator<TQuery>
 ) : UnitOfWork<Entity> {
@@ -60,15 +61,13 @@ class DefaultEntityTrackingUnitOfWork<TQuery>(
         return trackEntity(tracked, changedEntities)
     }
 
-    override fun complete() {
+    override fun complete(): CompletionStage<Void> {
         // TODO: Need to add error handling to this function. Should probably be done in a subclass although maybe
         // providing a query error handling strategy would be more flexible. Having said that, maybe in the
         // coordinator or query mapping is more natural.
         // TODO: Create queries first to reduce time spent in transaction
         queryCoordinator.transaction {
             // Group all entities by their type so we can batchExecute their updates by type
-            // TODO: We may be able to get away with just batching all updates in one single batchExecute regardless of
-            // type, need to test once this is plugged into Jooq
             for (entityChangeMap in mapOf(
                     (newEntities to ChangeType.Insert),
                     (changedEntities to ChangeType.Update),
@@ -96,7 +95,12 @@ class DefaultEntityTrackingUnitOfWork<TQuery>(
                                     }
                         }
             }
+
+            val all = newEntities + changedEntities + deletedEntities
+
+            allOf(*all.map { it.completionStage.toCompletableFuture() }.toTypedArray())
         }
+
     }
 
     /**
