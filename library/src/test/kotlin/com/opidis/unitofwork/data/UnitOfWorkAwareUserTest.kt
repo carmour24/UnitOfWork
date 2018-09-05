@@ -4,6 +4,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionStage
 
 internal class UnitOfWorkAwareUserTest {
     @Nested
@@ -71,7 +73,11 @@ internal class UnitOfWorkAwareUserTest {
                 transactional()
             }
 
-            override fun batchExecute(queries: List<MockQuery>) = IntArray(numberOfResults) { 1 }
+            override fun batchExecute(queries: List<MockQuery>): CompletionStage<IntArray> {
+               val resultsFuture = CompletableFuture<IntArray>()
+                resultsFuture.complete(IntArray(numberOfResults) { 1 })
+                return resultsFuture
+            }
         }
 
         @BeforeEach

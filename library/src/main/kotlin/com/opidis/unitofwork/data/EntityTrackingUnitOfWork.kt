@@ -68,11 +68,11 @@ open class DefaultEntityTrackingUnitOfWork<TQuery>(
         // TODO: Create queries first to reduce time spent in transaction
         queryCoordinator.transaction {
             // Group all entities by their type so we can batchExecute their updates by type
-            for (entityChangeMap in mapOf(
+            val allComplete = mapOf(
                     (newEntities to ChangeType.Insert),
                     (changedEntities to ChangeType.Update),
                     (deletedEntities to ChangeType.Delete)
-            )) {
+            ).map { entityChangeMap ->
                 val entityListForChangeType = entityChangeMap.component1()
                 val changeType = entityChangeMap.component2()
 
@@ -86,21 +86,23 @@ open class DefaultEntityTrackingUnitOfWork<TQuery>(
                                                 entities = listOf(it.trackedEntity)
                                         )
                                     }
-                            )
-                                    .forEachIndexed { index, affectedCount ->
-                                        // Take each result from the batchExecute update/insert/delete and complete the
-                                        // associated EntityChangeWrapper which will use its completion stage to
-                                        // notify any interested parties, e.g. to ensure an update was performed.
-                                        entityListForChangeType[index].complete(affectedCount)
-                                    }
+                            ).thenAccept {
+                                it.forEachIndexed { index, affectedCount ->
+                                    // Take each result from the batchExecute update/insert/delete and complete the
+                                    // associated EntityChangeWrapper which will use its completion stage to
+                                    // notify any interested parties, e.g. to ensure an update was performed.
+                                    entityListForChangeType[index].complete(affectedCount)
+                                }
+                            }
                         }
+
             }
 
-            val all = newEntities + changedEntities + deletedEntities
-
-            allOf(*all.map { it.completionStage.toCompletableFuture() }.toTypedArray())
         }
 
+        val all = newEntities + changedEntities + deletedEntities
+
+        return allOf(*all.map { it.completionStage.toCompletableFuture() }.toTypedArray())
     }
 
     /**

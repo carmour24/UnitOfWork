@@ -71,7 +71,7 @@ internal class JooqQueryCoordinatorTest {
             val affectedCount = jooqQueryCoordinator!!.batchExecute(listOf(singleUpdateQuery))
 
             assert(batchSql.size == 1)
-            assert(affectedCount.sum() == 1)
+            assert(affectedCount.get().sum() == 1)
         }
 
         @Test
@@ -123,7 +123,7 @@ internal class JooqQueryCoordinatorTest {
             val affectedCount = jooqQueryCoordinator!!.batchExecute(listOf(query1, query2))
 
             assert(batchSql.size == 2) { "Batch size should be 2 for 2 updates not ${batchSql.size}" }
-            assert(affectedCount.sum() == 2) { "Affected count should be 2 for 2 updates not $affectedCount" }
+            assert(affectedCount.get().sum() == 2) { "Affected count should be 2 for 2 updates not $affectedCount" }
         }
     }
 
@@ -180,8 +180,8 @@ internal class JooqQueryCoordinatorTest {
             val affectedCount = jooqQueryCoordinator!!.batchExecute(listOf(query1, query2))
 
 //            assert(batchSql.size == 2) { "Batch size should be 2 for 2 updates not ${batchSql.size}" }
-            assert(affectedCount.size == 2) { "Count of affected entries should be 2" }
-            assert(affectedCount.sum() == 2) { "Affected count should be 2 for 2 updates not $affectedCount" }
+            assert(affectedCount.get().size == 2) { "Count of affected entries should be 2" }
+            assert(affectedCount.get().sum() == 2) { "Affected count should be 2 for 2 updates not $affectedCount" }
         }
 
         @Test
