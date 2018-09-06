@@ -10,7 +10,7 @@ import java.util.concurrent.CompletionStage
  * All changes will be recorded and persisted to the database at one time within a single transaction.
  * This will commit all changes quickly without requiring a long running connection.
  */
-interface UnitOfWork<in Tracked, TExecutionInfo> {
+interface UnitOfWork<in Tracked> {
     /**
      * Adds an entity to the internal tracking of changes to be later persisted to the database by calling [complete].
      * @return Returns a mono with the count of rows affected once the tracked entity's changes have been persisted.
@@ -33,7 +33,7 @@ interface UnitOfWork<in Tracked, TExecutionInfo> {
     /**
      * Persist all changes recorded with [trackChange] to the database within a single transaction.
      */
-    fun complete(executionInfo: TExecutionInfo? = null) : CompletionStage<Void>
+    fun complete() : CompletionStage<Void>
 }
 
 

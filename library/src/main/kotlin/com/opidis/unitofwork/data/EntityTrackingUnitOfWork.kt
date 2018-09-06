@@ -8,7 +8,7 @@ import java.util.concurrent.CompletionStage
  * Type alias of UnitOfWork for tracking [Entity] subtypes. This is a convenience to be used in other
  * classes supporting tracking [Entity] changes and persisting those.
  */
-typealias EntityTrackingUnitOfWork = UnitOfWork<Entity, ExecutionInfo>
+typealias EntityTrackingUnitOfWork = UnitOfWork<Entity>
 
 /**
  * Default Unit of Work implementation for tracking changes within [Entity] subclasses which delegates query generation
@@ -30,7 +30,7 @@ typealias EntityTrackingUnitOfWork = UnitOfWork<Entity, ExecutionInfo>
 open class DefaultEntityTrackingUnitOfWork<TQuery, TExecutionInfo : ExecutionInfo>(
         private val queryConfiguration: QueryMappingConfiguration<TQuery>,
         private val queryCoordinator: QueryCoordinator<TQuery, TExecutionInfo>
-) : UnitOfWork<Entity, TExecutionInfo> {
+) : UnitOfWork<Entity> {
 
     private val newEntities = mutableListOf<EntityChangeWrapper>()
     private val changedEntities = mutableListOf<EntityChangeWrapper>()
@@ -58,12 +58,12 @@ open class DefaultEntityTrackingUnitOfWork<TQuery, TExecutionInfo : ExecutionInf
         return trackEntity(tracked, changedEntities)
     }
 
-    override fun complete(executionInfo: TExecutionInfo?): CompletionStage<Void> {
+    override fun complete(): CompletionStage<Void> {
         // TODO: Need to add error handling to this function. Should probably be done in a subclass although maybe
         // providing a query error handling strategy would be more flexible. Having said that, maybe in the
         // coordinator or query mapping is more natural.
         // TODO: Create queries first to reduce time spent in transaction
-        queryCoordinator.transaction {
+        queryCoordinator.transaction { executionInfo ->
             // Group all entities by their type so we can batchExecute their updates by type
             mapOf(
                     (newEntities to ChangeType.Insert),
