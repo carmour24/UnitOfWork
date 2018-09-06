@@ -4,14 +4,11 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.allOf
 import java.util.concurrent.CompletionStage
 
-//val jooqEntityTrackingUnitOfWork = EntityTrackingUnitOfWork(EntityQueryMappingConfiguration(DSL.using("")), JooqQueryCoordinator
-//(DSL.using("")))
-
 /**
  * Type alias of UnitOfWork for tracking [Entity] subtypes. This is a convenience to be used in other
  * classes supporting tracking [Entity] changes and persisting those.
  */
-typealias EntityTrackingUnitOfWork = UnitOfWork<Entity>
+typealias EntityTrackingUnitOfWork = UnitOfWork<Entity, ExecutionInfo>
 
 /**
  * Default Unit of Work implementation for tracking changes within [Entity] subclasses which delegates query generation
@@ -30,10 +27,10 @@ typealias EntityTrackingUnitOfWork = UnitOfWork<Entity>
  * are executed by the [queryCoordinator].
  *
  */
-open class DefaultEntityTrackingUnitOfWork<TQuery>(
+open class DefaultEntityTrackingUnitOfWork<TQuery, TExecutionInfo : ExecutionInfo>(
         private val queryConfiguration: QueryMappingConfiguration<TQuery>,
-        private val queryCoordinator: QueryCoordinator<TQuery>
-) : UnitOfWork<Entity> {
+        private val queryCoordinator: QueryCoordinator<TQuery, TExecutionInfo>
+) : UnitOfWork<Entity, TExecutionInfo> {
 
     private val newEntities = mutableListOf<EntityChangeWrapper>()
     private val changedEntities = mutableListOf<EntityChangeWrapper>()
@@ -61,18 +58,18 @@ open class DefaultEntityTrackingUnitOfWork<TQuery>(
         return trackEntity(tracked, changedEntities)
     }
 
-    override fun complete(): CompletionStage<Void> {
+    override fun complete(executionInfo: TExecutionInfo?): CompletionStage<Void> {
         // TODO: Need to add error handling to this function. Should probably be done in a subclass although maybe
         // providing a query error handling strategy would be more flexible. Having said that, maybe in the
         // coordinator or query mapping is more natural.
         // TODO: Create queries first to reduce time spent in transaction
         queryCoordinator.transaction {
             // Group all entities by their type so we can batchExecute their updates by type
-            val allComplete = mapOf(
+            mapOf(
                     (newEntities to ChangeType.Insert),
                     (changedEntities to ChangeType.Update),
                     (deletedEntities to ChangeType.Delete)
-            ).map { entityChangeMap ->
+            ).forEach { entityChangeMap ->
                 val entityListForChangeType = entityChangeMap.component1()
                 val changeType = entityChangeMap.component2()
 
@@ -85,8 +82,8 @@ open class DefaultEntityTrackingUnitOfWork<TQuery>(
                                                 changeType = changeType,
                                                 entities = listOf(it.trackedEntity)
                                         )
-                                    }
-                            ).thenAccept {
+                                    },
+                                    executionInfo).thenAccept {
                                 it.forEachIndexed { index, affectedCount ->
                                     // Take each result from the batchExecute update/insert/delete and complete the
                                     // associated EntityChangeWrapper which will use its completion stage to

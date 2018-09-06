@@ -49,7 +49,7 @@ jooq {
             driver = 'org.postgresql.Driver'
             url = 'jdbc:postgresql://localhost/postgres'
             user = 'postgres'
-            password = 'password'
+            password = 'postgres'
         }
         generator {
             name = 'org.jooq.codegen.DefaultGenerator'
@@ -78,7 +78,7 @@ project.tasks.getByName('compileJava').dependsOn -= 'generateTablesJooqSchemaSou
 flyway {
     url = 'jdbc:postgresql://localhost/postgres'
     user = 'postgres'
-    password = 'password'
+    password = 'postgres'
     schemas = ['public']
 }
 

@@ -67,13 +67,14 @@ internal class UnitOfWorkAwareUserTest {
             }
         }
 
-        private fun getQueryCoordinatorFor(numberOfResults: Int) = object : QueryCoordinator<MockQuery> {
+        private fun getQueryCoordinatorFor(numberOfResults: Int) = object : QueryCoordinator<MockQuery, ExecutionInfo> {
             override fun transaction(transactional: () -> Unit) {
                 // Execute the body of the transaction, e.g. query generation and execution.
                 transactional()
             }
 
-            override fun batchExecute(queries: List<MockQuery>): CompletionStage<IntArray> {
+            override fun batchExecute(queries: List<MockQuery>, executionInfo: ExecutionInfo?):
+                    CompletionStage<IntArray> {
                val resultsFuture = CompletableFuture<IntArray>()
                 resultsFuture.complete(IntArray(numberOfResults) { 1 })
                 return resultsFuture

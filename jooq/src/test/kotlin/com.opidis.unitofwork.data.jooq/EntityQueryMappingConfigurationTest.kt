@@ -34,7 +34,6 @@ internal class EntityQueryMappingConfigurationTest {
 
 
     @Test
-    @Disabled
     fun mapQueryForNewEntity1ToTbl1Record() {
         val entity = Entity1(10, "Chris")
         val query = entityQueryMappingConfiguration!!.queryFor(ChangeType.Insert, entities = listOf(entity))
@@ -55,7 +54,6 @@ internal class EntityQueryMappingConfigurationTest {
     }
 
     @Test
-    @Disabled
     fun mapQueryForUpdatedEntity1ToTbl1Record() {
         val entity = Entity1(10, "Chris")
         val query = entityQueryMappingConfiguration!!.queryFor(ChangeType.Update, entities = listOf(entity))
@@ -76,7 +74,6 @@ internal class EntityQueryMappingConfigurationTest {
     }
 
     @Test
-    @Disabled
     fun mapQueryForDeletedEntity1ToTbl1Record() {
         val entity = Entity1(10, "Chris")
         val query = entityQueryMappingConfiguration!!.queryFor(ChangeType.Delete, entities = listOf(entity))
