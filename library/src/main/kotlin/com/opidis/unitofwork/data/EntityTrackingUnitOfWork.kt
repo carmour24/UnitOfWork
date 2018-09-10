@@ -63,7 +63,7 @@ open class DefaultEntityTrackingUnitOfWork<TQuery, TExecutionInfo : ExecutionInf
         // providing a query error handling strategy would be more flexible. Having said that, maybe in the
         // coordinator or query mapping is more natural.
         // TODO: Create queries first to reduce time spent in transaction
-        queryCoordinator.transaction { executionInfo ->
+        val done = queryCoordinator.transaction { executionInfo ->
             // Group all entities by their type so we can batchExecute their updates by type
             mapOf(
                     (newEntities to ChangeType.Insert),
@@ -74,16 +74,17 @@ open class DefaultEntityTrackingUnitOfWork<TQuery, TExecutionInfo : ExecutionInf
                 val changeType = entityChangeMap.component2()
 
                 entityListForChangeType.groupBy { it.javaClass }
+                        .map { it.value }
                         // For each entity type create a batchExecute of queries and execute.
-                        .forEach {
+                        .forEach { entityChangeWrappers ->
                             queryCoordinator.batchExecute(
-                                    it.value.map {
-                                        queryConfiguration.queryFor(
-                                                changeType = changeType,
-                                                entities = listOf(it.trackedEntity)
-                                        )
-                                    },
-                                    executionInfo).thenAccept {
+//                                    entityChangeWrappers.map {
+                                    listOf(queryConfiguration.queryFor(
+                                            changeType = changeType,
+                                            entities = entityChangeWrappers.map { it.trackedEntity }.toList()
+                                    ))
+//                                    }
+                                    , executionInfo).thenAccept {
                                 it.forEachIndexed { index, affectedCount ->
                                     // Take each result from the batchExecute update/insert/delete and complete the
                                     // associated EntityChangeWrapper which will use its completion stage to
@@ -92,14 +93,17 @@ open class DefaultEntityTrackingUnitOfWork<TQuery, TExecutionInfo : ExecutionInf
                                 }
                             }
                         }
-
             }
 
         }
 
         val all = newEntities + changedEntities + deletedEntities
 
-        return allOf(*all.map { it.completionStage.toCompletableFuture() }.toTypedArray())
+        val allComplete = allOf(*all.map { it.completionStage.toCompletableFuture() }.toTypedArray())
+
+        allComplete.thenApply { done.invoke() }
+
+        return allComplete
     }
 
     /**
