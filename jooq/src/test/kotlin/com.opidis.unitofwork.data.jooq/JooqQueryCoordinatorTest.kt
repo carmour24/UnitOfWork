@@ -10,6 +10,7 @@ import org.jooq.conf.ParamType
 import org.jooq.impl.DSL
 import org.jooq.tools.jdbc.MockConnection
 import org.jooq.tools.jdbc.MockDataProvider
+import org.jooq.tools.jdbc.MockExecuteContext
 import org.jooq.tools.jdbc.MockResult
 import org.jooq.util.postgres.PostgresDSL
 import org.junit.jupiter.api.*
@@ -37,30 +38,35 @@ internal class JooqQueryCoordinatorTest {
     fun logging() {
     }
 
+    @Disabled("Can't currently figure out how to use the records for batch update query generation with primary key as predicate for each record.")
     @Nested
     inner class UpdateQueries {
         @BeforeEach
         fun setUp() {
-            dslContext = if (mockPostgres) {
-                val mockDataProvider = MockDataProvider {
-                    batchSql = it.batchSQL()
-                    println(batchSql.joinToString(separator = "\n"))
-                    arrayOf(
-                            MockResult(batchSql.size)
-                    )
-                }
-
-                connection = MockConnection(mockDataProvider)
-                DSL.using(connection, SQLDialect.POSTGRES_10)
-            } else {
-                PostgresDSL.using("jdbc:postgresql://localhost/postgres", "postgres", "postgres")
-            }
+            dslContext = dslContext()
             jooqQueryCoordinator = JooqQueryCoordinator(dslContext!!)
 
 
             dslContext!!
                     .deleteFrom(TBL1)
                     .execute()
+
+            // Configure data for updates to operate on.
+            val insertQuery = dslContext!!
+                    .insertQuery(TBL1)
+
+            val record = Tbl1Record()
+            record.id = 10
+            record.name = "Chris1"
+
+            val record2 = Tbl1Record()
+            record2.id = 20
+            record2.name = "Yoni1"
+
+            insertQuery.addRecord(record)
+            insertQuery.addRecord(record2)
+
+            insertQuery.execute()
         }
 
         @Test
@@ -68,6 +74,10 @@ internal class JooqQueryCoordinatorTest {
             val record = Tbl1Record()
             record.id = 10
             record.name = "Chris"
+            // Mark primary key fields as unchanged so that the update command doesn't attempt to update primary key
+            TBL1.primaryKey.fields.forEach { primaryKeyField ->
+                record.changed(primaryKeyField, false)
+            }
 
             val singleUpdateQuery = dslContext!!
                     .update(TBL1)
@@ -77,27 +87,36 @@ internal class JooqQueryCoordinatorTest {
 
             if (mockPostgres) {
                 assert(batchSql.size == 1) {
-                    "Value should be 1, rather than ${batchSql.size}"
+                    "SQL query count should be 1, rather than ${batchSql.size}"
                 }
             }
             assert(affectedCount.get().sum() == 1) {
-                "Value should be 1, rather than ${affectedCount.get().sum()}"
+                "Affected count should be 1, rather than ${affectedCount.get().sum()}"
             }
         }
 
         // For some reason this only seems to try to execute a single query, should figure out if it is
         // internally translating this to a single execute with multiple bound rows going in. Only one record as
         // affected count returned though.
-        @Disabled
         @Test
         fun shouldBatchMultipleUpdateQueries2() {
             val record1 = Tbl1Record()
             record1.id = 10
             record1.name = "Chris"
+            // Mark primary key fields as unchanged so that the update command doesn't attempt to update primary key
+            TBL1.primaryKey.fields.forEach { primaryKeyField ->
+                record1.changed(primaryKeyField, false)
+            }
 
             val record2 = Tbl1Record()
             record2.id = 20
             record2.name = "Yoni"
+
+            // Mark primary key fields as unchanged so that the update command doesn't attempt to update primary key
+            TBL1.primaryKey.fields.forEach { primaryKeyField ->
+                record2.changed(primaryKeyField, false)
+            }
+
 
             val updateBatch = dslContext!!
                     .batchUpdate(record1, record2)
@@ -125,6 +144,10 @@ internal class JooqQueryCoordinatorTest {
             val record1 = Tbl1Record()
             record1.id = 10
             record1.name = "Chris"
+            // Mark primary key fields as unchanged so that the update command doesn't attempt to update primary key
+            TBL1.primaryKey.fields.forEach { primaryKeyField ->
+                record1.changed(primaryKeyField, false)
+            }
 
             val query1 = dslContext!!
                     .update(TBL1)
@@ -133,6 +156,10 @@ internal class JooqQueryCoordinatorTest {
             val record2 = Tbl1Record()
             record2.id = 20
             record2.name = "Yoni"
+            // Mark primary key fields as unchanged so that the update command doesn't attempt to update primary key
+            TBL1.primaryKey.fields.forEach { primaryKeyField ->
+                record2.changed(primaryKeyField, false)
+            }
 
             val query2 = dslContext!!
                     .update(TBL1)
@@ -142,6 +169,23 @@ internal class JooqQueryCoordinatorTest {
 
             assert(batchSql.size == 2) { "Batch size should be 2 for 2 updates not ${batchSql.size}" }
             assert(affectedCount.get().sum() == 2) { "Affected count should be 2 for 2 updates not $affectedCount" }
+        }
+    }
+
+    fun dslContext(dataProviderAction: ((MockExecuteContext) -> Array<out MockResult>)? = null): DSLContext? {
+        return if (mockPostgres) {
+            val mockDataProvider = MockDataProvider(dataProviderAction ?: {
+                batchSql = it.batchSQL()
+                println(batchSql.joinToString(separator = "\n"))
+                arrayOf(
+                        MockResult(batchSql.size)
+                )
+            })
+
+            connection = MockConnection(mockDataProvider)
+            DSL.using(connection, SQLDialect.POSTGRES_10)
+        } else {
+            PostgresDSL.using("jdbc:postgresql://localhost/postgres", "postgres", "postgres")
         }
     }
 
@@ -160,8 +204,14 @@ internal class JooqQueryCoordinatorTest {
 
             connection = MockConnection(mockDataProvider)
 
-//            dslContext = DSL.using(connection, SQLDialect.POSTGRES_10)
-            dslContext = PostgresDSL.using("jdbc:postgresql://localhost/postgres", "postgres", "postgres")
+            dslContext = dslContext {
+                batchSql = it.batchSQL()
+                println(batchSql.joinToString(separator = "\n"))
+                arrayOf(
+                        MockResult(it.autoGeneratedKeys())
+                )
+            }
+
             jooqQueryCoordinator = JooqQueryCoordinator(dslContext!!)
 
             dslContext!!
@@ -179,10 +229,15 @@ internal class JooqQueryCoordinatorTest {
             record2.id = 21
             record2.name = "Yoni"
 
+            val record3 = Tbl1Record()
+            record2.id = 22
+            record2.name = "Jason"
+
             val query = dslContext!!.insertQuery(TBL1)
 
             query.addRecord(record1)
             query.addRecord(record2)
+            query.addRecord(record3)
 
             val affectedCount = query.execute()
 //            val affectedCount = jooqQueryCoordinator!!.batchExecute(listOf(query1, query2))
@@ -217,6 +272,7 @@ internal class JooqQueryCoordinatorTest {
         }
 
         @Test
+        @Disabled
         fun shouldBatchMultipleInsertQueries2() {
             val record1 = Tbl1Record()
             record1.id = 11

@@ -8,8 +8,12 @@ import java.util.concurrent.CompletableFuture
 
 class JooqQueryCoordinator(private val dslContext: DSLContext) : QueryCoordinator<Query, ExecutionInfo> {
 
-    override fun transaction(transactional: (ExecutionInfo?) -> Unit) = dslContext.connection {
-        dslContext.transaction { -> transactional(null)}
+    override fun transaction(transactional: (ExecutionInfo?) -> Unit): (() -> Unit) {
+        dslContext.connection {
+            dslContext.transaction { -> transactional(null) }
+        }
+
+        return {}
     }
 
     override fun batchExecute(queries: List<Query>, executionInfo: ExecutionInfo?): CompletableFuture<IntArray> {

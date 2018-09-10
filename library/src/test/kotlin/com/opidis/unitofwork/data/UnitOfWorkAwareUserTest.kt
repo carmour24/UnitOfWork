@@ -68,9 +68,10 @@ internal class UnitOfWorkAwareUserTest {
         }
 
         private fun getQueryCoordinatorFor(numberOfResults: Int) = object : QueryCoordinator<MockQuery, ExecutionInfo> {
-            override fun transaction(transactional: (ExecutionInfo?) -> Unit) {
+            override fun transaction(transactional: (ExecutionInfo?) -> Unit) : () -> Unit {
                 // Execute the body of the transaction, e.g. query generation and execution.
                 transactional(null)
+                return {}
             }
 
             override fun batchExecute(queries: List<MockQuery>, executionInfo: ExecutionInfo?):
