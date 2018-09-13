@@ -3,6 +3,7 @@ package com.opidis.unitofwork.data
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.allOf
 import java.util.concurrent.CompletionStage
+import java.util.concurrent.TimeUnit
 
 /**
  * Type alias of UnitOfWork for tracking [Entity] subtypes. This is a convenience to be used in other
@@ -78,18 +79,17 @@ open class DefaultEntityTrackingUnitOfWork<TQuery, TExecutionInfo : ExecutionInf
                         // For each entity type create a batchExecute of queries and execute.
                         .forEach { entityChangeWrappers ->
                             queryCoordinator.batchExecute(
-//                                    entityChangeWrappers.map {
                                     listOf(queryConfiguration.queryFor(
                                             changeType = changeType,
                                             entities = entityChangeWrappers.map { it.trackedEntity }.toList()
                                     ))
-//                                    }
-                                    , executionInfo).thenAccept {
-                                it.forEachIndexed { index, affectedCount ->
+                                    , executionInfo).handle { changeCounts, u ->
+                                changeCounts.forEachIndexed { index, affectedCount ->
+                                    println("completing change $index with $affectedCount results")
                                     // Take each result from the batchExecute update/insert/delete and complete the
                                     // associated EntityChangeWrapper which will use its completion stage to
                                     // notify any interested parties, e.g. to ensure an update was performed.
-                                    entityListForChangeType[index].complete(affectedCount)
+                                    entityChangeWrappers[index].complete(affectedCount)
                                 }
                             }
                         }
@@ -100,10 +100,8 @@ open class DefaultEntityTrackingUnitOfWork<TQuery, TExecutionInfo : ExecutionInf
         val all = newEntities + changedEntities + deletedEntities
 
         val allComplete = allOf(*all.map { it.completionStage.toCompletableFuture() }.toTypedArray())
-
-        allComplete.thenApply { done.invoke() }
-
-        return allComplete
+        // Add invoke of completion step for transaction
+        return allComplete.thenCompose { done.invoke() }
     }
 
     /**
