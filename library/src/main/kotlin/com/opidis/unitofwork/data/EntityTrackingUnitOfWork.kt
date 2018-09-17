@@ -3,7 +3,6 @@ package com.opidis.unitofwork.data
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.allOf
 import java.util.concurrent.CompletionStage
-import java.util.concurrent.TimeUnit
 
 /**
  * Type alias of UnitOfWork for tracking [Entity] subtypes. This is a convenience to be used in other
@@ -60,6 +59,11 @@ open class DefaultEntityTrackingUnitOfWork<TQuery, TExecutionInfo : ExecutionInf
     }
 
     override fun complete(): CompletionStage<Void> {
+        // If there's no change entries then don't create a transaction and perform entity change persistence.
+        if (newEntities.isEmpty() && changedEntities.isEmpty() && deletedEntities.isEmpty()) {
+            return CompletableFuture.completedFuture(null)
+        }
+
         // TODO: Need to add error handling to this function. Should probably be done in a subclass although maybe
         // providing a query error handling strategy would be more flexible. Having said that, maybe in the
         // coordinator or query mapping is more natural.
@@ -74,8 +78,10 @@ open class DefaultEntityTrackingUnitOfWork<TQuery, TExecutionInfo : ExecutionInf
                 val entityListForChangeType = entityChangeMap.component1()
                 val changeType = entityChangeMap.component2()
 
-                entityListForChangeType.groupBy { it.javaClass }
-                        .map { it.value }
+                entityListForChangeType
+                        .asSequence()
+                        .groupBy { it.javaClass }
+                        .map { it.value }.toList()
                         // For each entity type create a batchExecute of queries and execute.
                         .forEach { entityChangeWrappers ->
                             queryCoordinator.batchExecute(
@@ -94,14 +100,13 @@ open class DefaultEntityTrackingUnitOfWork<TQuery, TExecutionInfo : ExecutionInf
                             }
                         }
             }
-
         }
 
         val all = newEntities + changedEntities + deletedEntities
 
         val allComplete = allOf(*all.map { it.completionStage.toCompletableFuture() }.toTypedArray())
         // Add invoke of completion step for transaction
-        return allComplete.thenCompose { done.invoke() }
+        return allComplete.thenAccept { done.invoke() }
     }
 
     /**
