@@ -106,7 +106,7 @@ open class DefaultEntityTrackingUnitOfWork<TQuery, TExecutionInfo : ExecutionInf
 
         val allComplete = allOf(*all.map { it.completionStage.toCompletableFuture() }.toTypedArray())
         // Add invoke of completion step for transaction
-        return allComplete.thenAccept { done.invoke() }
+        return allComplete.thenCompose { done.invoke() }
     }
 
     /**
@@ -119,7 +119,7 @@ open class DefaultEntityTrackingUnitOfWork<TQuery, TExecutionInfo : ExecutionInf
      */
     private class EntityChangeWrapper(val trackedEntity: Entity) {
         private val completableFuture = CompletableFuture<Int>()
-        val completionStage: CompletionStage<Int> = completableFuture.minimalCompletionStage()
+        val completionStage: CompletionStage<Int> = completableFuture
 
         fun complete(affectedCount: Int) {
             completableFuture.complete(affectedCount)
