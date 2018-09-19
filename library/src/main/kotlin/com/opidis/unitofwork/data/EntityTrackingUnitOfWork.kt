@@ -80,7 +80,7 @@ open class DefaultEntityTrackingUnitOfWork<TQuery, TExecutionInfo : ExecutionInf
 
                 entityListForChangeType
                         .asSequence()
-                        .groupBy { it.javaClass }
+                        .groupBy { it.trackedEntity.javaClass }
                         .map { it.value }.toList()
                         // For each entity type create a batchExecute of queries and execute.
                         .forEach { entityChangeWrappers ->
