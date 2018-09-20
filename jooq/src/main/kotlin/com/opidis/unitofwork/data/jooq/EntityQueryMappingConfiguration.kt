@@ -16,7 +16,7 @@ import org.jooq.*
 class EntityQueryMappingConfiguration(private val dslContext: DSLContext) : QueryMappingConfiguration<Query> {
     override fun <T : Entity> queryFor(changeType: ChangeType, entities: List<T>): Query {
         return when (entities) {
-            entities as? List<Entity1> -> queryFor(entities, changeType = changeType)
+            entities as List<Entity1> -> queryFor(entities, changeType = changeType)
             else -> throw Exception("Unsupported entity type supplied for query generation")
         }
     }
